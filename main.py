@@ -9,29 +9,25 @@ from time import time
 import os
 
 
-db =  FAISS.load_local("presight_faiss", OpenAIEmbeddings(), 'presight')
+db =  FAISS.load_local("demo", OpenAIEmbeddings())
 chat = ChatOpenAI(request_timeout=5)
 def init_prompt():
     global messages
     messages = [
-        SystemMessage(content="You are an assistant for question-answering tasks. Use the context to answer the question. If you don't know the answer, just say that you don't know. Use two sentences maximum and keep the answer concise"),
+        SystemMessage(content="You are a help full chatbot. You will be provided a part of transcript as a context. Please answer the question based on the context."),
     ]
 init_prompt()
 
 with gr.Blocks() as demo:
-    # gr.image(["presight.png"], width=120)
-    chatbot = gr.Chatbot(value=[[None, "👋 Hello! Welcome to Presight's Chatbot.\nIf you have any questions regarding our Privacy Policy or data protection practices, feel free to ask."]])
-    msg = gr.Textbox("Do your company protect the privacy of the customers?")
+    chatbot = gr.Chatbot(value=[[None, "👋 Hello! Welcome to Eklipse's Chatbot.\nIf you have any questions regarding '`Survive 100 Days Trapped, Win $500,000`' video, feel free to ask."]])
+    msg = gr.Textbox("What is the prize?")
     clear = gr.ClearButton([msg, chatbot])
 
     def respond(question, chat_history):
         begin = time()
         context  = db.similarity_search(question)[0].page_content
         print("search time: ", round( time() - begin, 2))
-        # relevance_score, relevance_doc = db.similarity_search_with_score(question)
-        # print(relevance_score, relevance_doc) 
         messages.append(HumanMessage(content=f"#Context: {context}\n\n#Question: {question}"))
-        # print(messages)
         bot_message = chat(messages)
         messages.append(bot_message)
         print("response time: ", round( time() - begin, 2))
@@ -43,4 +39,4 @@ with gr.Blocks() as demo:
     clear.click(init_prompt)
     
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share=True)
